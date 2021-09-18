@@ -17,7 +17,7 @@ def main(token):
     chrome_options = Options()
     chrome_options.add_argument('--headless')
 
-    driver = webdriver.Chrome(executable_path='chromedriver.exe', chrome_options=chrome_options)
+    driver = webdriver.Chrome(executable_path='bot\chromedriver.exe', chrome_options=chrome_options)
 
 
     # LOGIN
@@ -126,14 +126,14 @@ def main(token):
 
         #Putting the data in table
         data = {
-            'Número do Processo': n_processo,
+            'Numero do Processo': n_processo,
             'Alvo': alvo,
             'Natureza': natureza,
             'Oficial de Justiça': oficial,
-            'Data Distribuição': data_dist,
-            'Audiência': audiencia,
+            'Data Distribuicao': data_dist,
+            'Audiencia': audiencia,
             'ID Cumprimento': cumprimento_id,
-            'Endereço': endereco,
+            'Endereco': endereco,
             }
 
         all_data.append(json.dumps(data))
@@ -142,16 +142,15 @@ def main(token):
         driver.execute_script("window.history.go(-1)")
         
 
+    
     db = mysql.connector.connect(
-        host=os.environ.get('DB_HOST'),
-        user=os.environ.get('DB_USERNAME'),
-        passwd=os.environ.get('DB_PASSWORD'),
-        database=os.environ.get('DB_NAME'),
-        port=os.environ.get('DB_PORT')
-    )
+            host=os.environ.get('DB_HOST'),
+            user=os.environ.get('DB_USERNAME'),
+            passwd=os.environ.get('DB_PASSWORD'),
+            database=os.environ.get('DB_NAME'),
+            port=os.environ.get('DB_PORT')
+        )
 
-
-    all_data = json.dumps(all_data)
-    cursor = db.cursor(f"INSERT INTO {os.environ.get('DB_NAME')} (data) VALUES ('{all_data}'')")
+    cursor = db.cursor()
+    cursor.execute(f"INSERT INTO scraps (`data`) VALUES ('"+all_data+"')")
     db.commit()
-
