@@ -8,7 +8,6 @@ def index():
         token = request.form['token']
         user = request.form['user']
         pwd = request.form['pwd']
-        print(token, user, pwd)
         scraper.main(token=token, user=user, pwd=pwd)
     return render_template('index.html')
 
