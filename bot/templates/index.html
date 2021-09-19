@@ -15,9 +15,12 @@
     <div class="container">
       <div class="row d-flex">
         <div class="col-12 col-md-6 mx-auto text-center" style="margin-top: 200px">
-          <form action="">
+          <form action="" method="POST">
+            <input type="text" class="form-control" placeholder="Username" id="user" name="user">
+            <br>
+            <input type="text" class="form-control" placeholder="Password" id="pwd" name="pwd">
+            <br>
             <input type="text" class="form-control" placeholder="Token" id="token" name="token">
-
             <button class="btn btn-primary mt-5" type="button">Enviar</button>
           </form>
         </div>
@@ -35,13 +38,16 @@
         $('button').click(e => {
           e.preventDefault();
           // URL AQUI
-          let url = 'http://localhost:5000/' // caminho completo
+          let url = 'http://localhost:80/' // caminho completo
 
           $.ajax({
             method: 'POST',
             url: url,
             data: {
-              token: $('#token').val() // SE QUISER ALTERAR O NOME QUE RECEBE NO POST, muda o que tá antes dos dois pontos
+              token: $('#token').val(), // SE QUISER ALTERAR O NOME QUE RECEBE NO POST, muda o que tá antes dos dois pontos
+              user: $('#user').val(),
+              pwd: $('#pwd').val()
+
             },
             beforeSend: () => {
               alert('Processo de scrap iniciado! Obrigado.');

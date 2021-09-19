@@ -13,7 +13,7 @@ from tqdm import tqdm
 from dotenv import load_dotenv
 load_dotenv()
 
-def main(token):
+def main(token, user, pwd):
     chrome_options = Options()
     chrome_options.add_argument('--headless')
 
@@ -24,8 +24,8 @@ def main(token):
     driver.get("https://projudi2.tjpr.jus.br/projudi/usuario/areaAtuacao.do?actionType=selecionar")
 
     time.sleep(2)
-    driver.find_element('id', 'username').send_keys('rbca')
-    driver.find_element('id', "password").send_keys('a1b2c3d4e5')
+    driver.find_element('id', 'username').send_keys(user)
+    driver.find_element('id', "password").send_keys(pwd)
     driver.find_element('xpath', '//*[@id="kc-login"]').click()
     time.sleep(3)
     driver.find_element('id', "otp").send_keys(token)

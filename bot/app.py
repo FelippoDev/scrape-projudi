@@ -6,7 +6,10 @@ app = Flask(__name__)
 def index():
     if request.method == "POST":
         token = request.form['token']
-        scraper.main(token)
+        user = request.form['user']
+        pwd = request.form['pwd']
+        print(token, user, pwd)
+        scraper.main(token=token, user=user, pwd=pwd)
     return render_template('index.html')
 
 if __name__ == "__main__":
