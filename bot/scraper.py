@@ -10,6 +10,7 @@ import mysql.connector
 import json
 import os
 from tqdm import tqdm
+import base64
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -61,96 +62,102 @@ def main(token, user, pwd):
 
     # SCRAPPING THE DATA
     all_data = []
-    for i in tqdm(range(1, 111)):
-        data = {}
+    for i in tqdm(range(1, 501)):
+        try:
+            data = {}
 
-        WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.XPATH, f'//table[3]/tbody/tr[{i}]/td[10]'))
-        )
-        alvo = driver.find_element('xpath', f'//table[3]/tbody/tr[{i}]/td[10]').text
-        data_dist = driver.find_element('xpath', f'//table[3]/tbody/tr[{i}]/td[3]').text
-        audiencia = driver.find_element('xpath', f'//table[3]/tbody/tr[{i}]/td[7]').text
+            WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, f'//table[3]/tbody/tr[{i}]/td[10]'))
+            )
+            alvo = driver.find_element('xpath', f'//table[3]/tbody/tr[{i}]/td[10]').text
+            data_dist = driver.find_element('xpath', f'//table[3]/tbody/tr[{i}]/td[3]').text
+            audiencia = driver.find_element('xpath', f'//table[3]/tbody/tr[{i}]/td[7]').text
 
-        lista = []
-        start = False
-        if audiencia:
-            for it in audiencia:
-                if it ==')':
+            lista = []
+            start = False
+            if audiencia:
+                for it in audiencia:
+                    if it ==')':
+                        break
+                    if start:
+                        lista.append(it)
+                    if it == '(':
+                        start = True
+                audiencia = ''.join(lista)
+            
+
+                # Indo para a expedicao
+            driver.find_element('xpath', f'//table[3]/tbody/tr[{i}]/td[2]/a').click()
+        
+                # DADO: Identificador do cumprimento
+            WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, "//table[@class='form']/tbody/tr[1]/td[2]"))
+            )    
+            cumprimento_id = driver.find_element('xpath', "//table[@class='form']/tbody/tr[1]/td[2]").text
+            n_processo = cumprimento_id.split()[2]
+            cumprimento = []
+            count = 0
+            for c in cumprimento_id:
+                cumprimento.append(c)
+                if count == 3:
                     break
-                if start:
-                    lista.append(it)
-                if it == '(':
-                    start = True
-            audiencia = ''.join(lista)
-        
+                count += 1
+            cumprimento_id = ''.join(cumprimento)
 
-            # Indo para a expedicao
-        driver.find_element('xpath', f'//table[3]/tbody/tr[{i}]/td[2]/a').click()
-    
-            # DADO: Identificador do cumprimento
-        WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.XPATH, "//table[@class='form']/tbody/tr[1]/td[2]"))
-        )    
-        cumprimento_id = driver.find_element('xpath', "//table[@class='form']/tbody/tr[1]/td[2]").text
-        n_processo = cumprimento_id.split()[2]
-        cumprimento = []
-        count = 0
-        for c in cumprimento_id:
-            cumprimento.append(c)
-            if count == 3:
-                break
-            count += 1
-        cumprimento_id = ''.join(cumprimento)
+                # DADO: Natureza de Mandato
+            natureza = driver.find_element('xpath', "//table[@class='form']/tbody/tr[6]/td[2]").text
 
-            # DADO: Natureza de Mandato
-        natureza = driver.find_element('xpath', "//table[@class='form']/tbody/tr[6]/td[2]").text
+                # DADO: Endereco
+            try:
+                driver.find_element('xpath', '//table[@class="form"]/tbody/tr[20]')
+            except:
+                endereco = driver.find_element('xpath', '//table[@class="form"]/tbody/tr[10]/td[2]').text
 
-            # DADO: Endereco
-        try:
-            driver.find_element('xpath', '//table[@class="form"]/tbody/tr[20]')
-        except:
-            endereco = driver.find_element('xpath', '//table[@class="form"]/tbody/tr[10]/td[2]').text
-
-        else:
-            endereco = driver.find_element('xpath', '//table[@class="form"]/tbody/tr[11]/td[2]').text
+            else:
+                endereco = driver.find_element('xpath', '//table[@class="form"]/tbody/tr[11]/td[2]').text
 
 
-        try:
-            driver.find_element('xpath', '//table[@class="form"]/tbody/tr[20]')
-        except:
-            # DADO: oficial de justica
-            oficial = driver.find_element('xpath', "//table[@class='form']/tbody/tr[18]/td[2]").text
-        else:
+            try:
+                driver.find_element('xpath', '//table[@class="form"]/tbody/tr[20]')
+            except:
                 # DADO: oficial de justica
-            oficial = driver.find_element('xpath', "//table[@class='form']/tbody/tr[19]/td[2]").text
+                oficial = driver.find_element('xpath', "//table[@class='form']/tbody/tr[18]/td[2]").text
+            else:
+                    # DADO: oficial de justica
+                oficial = driver.find_element('xpath', "//table[@class='form']/tbody/tr[19]/td[2]").text
 
-        #Putting the data in table
-        data = {
-            'Numero do Processo': n_processo,
-            'Alvo': alvo,
-            'Natureza': natureza,
-            'Oficial de Justiça': oficial,
-            'Data Distribuicao': data_dist,
-            'Audiencia': audiencia,
-            'ID Cumprimento': cumprimento_id,
-            'Endereco': endereco,
-            }
+            #Putting the data in table
+            data = {
+                'Numero do Processo': n_processo,
+                'Alvo': alvo,
+                'Natureza': natureza,
+                'Oficial de Justiça': oficial,
+                'Data Distribuicao': data_dist,
+                'Audiencia': audiencia,
+                'ID Cumprimento': cumprimento_id,
+                'Endereco': endereco,
+                }
 
-        all_data.append(json.dumps(data))
+            all_data.append(data)
 
-        # going back to the table
-        driver.execute_script("window.history.go(-1)")
+            # going back to the table
+            driver.execute_script("window.history.go(-1)")
+        except:
+            break
         
 
-    
+    all_data = json.dumps(all_data)
+    b64json = all_data.encode("ascii")
+    b64json = base64.b64encode(b64json)
+    b64json = b64json.decode("ascii")
     db = mysql.connector.connect(
             host=os.environ.get('DB_HOST'),
             user=os.environ.get('DB_USERNAME'),
-            passwd=os.environ.get('DB_PASSWORD'),
+            password=os.environ.get('DB_PASSWORD'),
             database=os.environ.get('DB_NAME'),
             port=os.environ.get('DB_PORT')
         )
 
     cursor = db.cursor()
-    cursor.execute(f"INSERT INTO scraps (`data`) VALUES ('"+all_data+"')")
+    cursor.execute(f"INSERT INTO scraps (`data`) VALUES ('"+b64json+"')")
     db.commit()
