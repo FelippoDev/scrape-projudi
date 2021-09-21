@@ -8,5 +8,5 @@
 - Activate virtual python environment linux: ``` source venv/bin/activate``` windows: ```env\Scripts\activate```
 - Install all the libraries mentioned in requirements.txt using ```pip install -r requirements.txt```
 - Run Python file ```python app.py```
-- then open your browser and go to the link http://127.0.0.1:5000
+- then open your browser and go to the link http://127.0.0.1:80
 
