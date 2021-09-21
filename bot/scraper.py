@@ -151,11 +151,11 @@ def main(token, user, pwd):
     b64json = base64.b64encode(b64json)
     b64json = b64json.decode("ascii")
     db = mysql.connector.connect(
-            host=os.environ.get('DB_HOST'),
-            user=os.environ.get('DB_USERNAME'),
-            password=os.environ.get('DB_PASSWORD'),
-            database=os.environ.get('DB_NAME'),
-            port=os.environ.get('DB_PORT')
+            host='',
+            user='',
+            password='',
+            database='',
+            port=''
         )
 
     cursor = db.cursor()
