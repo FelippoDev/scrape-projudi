@@ -16,7 +16,8 @@ load_dotenv()
 
 def main(token, user, pwd):
     chrome_options = Options()
-    chrome_options.add_argument('--headless')
+    chrome_options.add_argument('--no-sandbox')
+    #chrome_options.add_argument('--headless')
 
     driver = webdriver.Chrome(executable_path='bot\chromedriver.exe', chrome_options=chrome_options)
 
@@ -29,30 +30,54 @@ def main(token, user, pwd):
     driver.find_element('id', "password").send_keys(pwd)
     driver.find_element('xpath', '//*[@id="kc-login"]').click()
     time.sleep(3)
-    driver.find_element('id', "otp").send_keys(token)
+    driver.find_element('id', "totp").send_keys(token)
     driver.find_element('xpath', '//*[@id="kc-login"]').click()
     time.sleep(1)
 
     driver.get("https://projudi2.tjpr.jus.br/projudi/home.do?r=0.5747265182907446")
 
     driver.find_element('xpath', '//*[@id="mainPage"]/div[1]/div[2]/div[1]/div[1]/ul/li[1]/span[1]').click()
-    time.sleep(1)
-
-    driver.find_element('xpath', '/html/body/table[2]/tbody/tr/td[1]/b/a').click()
 
     time.sleep(1)
-    driver.switch_to.window(driver.window_handles[-1])
 
-    # Grabbing the link out of the frame
+    # Path with multiples mandatos
+    try:
+        theads = driver.find_elements('xpath', '//table[@class="resultTable"]/thead/tr/th[1]')
+        # For loop to find in which table we can locate 'central de mandados'
+        for i in range(len(theads)):
+            if "CENTRAL DE MANDADOS" in theads[i].text:
+                break
+            
+        driver.find_element('xpath', f'//table[@class="resultTable"][{i+1}]/tbody/tr/td/b/a').click()
+
+        time.sleep(1)
+        driver.switch_to.window(driver.window_handles[-1])
+        link = driver.find_element('xpath', '//iframe')
+        link = link.get_attribute('src')
+        driver.get(link)
+        driver.find_element('xpath', '//*[@id="tabprefix0"]/table[1]/tbody/tr[4]/td[2]/strong/a').click()
+    except:
+        print('going to the second path....')
+
+    try:
+        # Path with only the central de mandatos
+        link = driver.find_element('xpath', '//iframe')
+        link = link.get_attribute('src')
+        driver.get(link)
+        driver.find_element('xpath', '//*[@id="tabprefix0"]/table[1]/tbody/tr[4]/td[2]/strong/a').click()
+    except:
+        print('going to the third path....')
+
+    # Path selecting oficial de justiça
+    driver.find_element('xpath', '//*[@id="listaPerfilAtivo"]/div/ul/li[1]/div[1]/a[1]').click()
     link = driver.find_element('xpath', '//iframe')
     link = link.get_attribute('src')
     driver.get(link)
-
-    driver.find_element('xpath', '//*[@id="totalMandadosEmCumprimento"]').click()
+    driver.find_element('xpath', '//*[@id="tabprefix0"]/table[1]/tbody/tr[4]/td[2]/strong/a').click()
 
     time.sleep(2)
 
-    # Selecting to all data be in the page
+    # Selecting all data in the page
     driver.find_element('xpath', '//*[@id="navigator"]/div[1]/select').click()
     time.sleep(1)
     driver.find_element('xpath', '//*[@id="navigator"]/div[1]/select/option[4]').click()
@@ -84,15 +109,15 @@ def main(token, user, pwd):
                     if it == '(':
                         start = True
                 audiencia = ''.join(lista)
-            
+
 
                 # Indo para a expedicao
             driver.find_element('xpath', f'//table[3]/tbody/tr[{i}]/td[2]/a').click()
-        
+
                 # DADO: Identificador do cumprimento
             WebDriverWait(driver, 10).until(
                 EC.presence_of_element_located((By.XPATH, "//table[@class='form']/tbody/tr[1]/td[2]"))
-            )    
+            )
             cumprimento_id = driver.find_element('xpath', "//table[@class='form']/tbody/tr[1]/td[2]").text
             n_processo = cumprimento_id.split()[2]
             cumprimento = []
@@ -144,8 +169,9 @@ def main(token, user, pwd):
             driver.execute_script("window.history.go(-1)")
         except:
             break
-        
 
+    print(f'ESTE EH O LENTH DA LISTA ALL DATA {len(all_data)}')
+    print(all_data)
     all_data = json.dumps(all_data)
     b64json = all_data.encode("ascii")
     b64json = base64.b64encode(b64json)
@@ -155,9 +181,10 @@ def main(token, user, pwd):
             user='',
             password='',
             database='',
-            port=''
-        )
+            port='',
+            auth_plugin='mysql_native_password')
 
     cursor = db.cursor()
-    cursor.execute(f"INSERT INTO scraps (`data`) VALUES ('"+b64json+"')")
+    cursor.execute(f"INSERT INTO scraps (`data`, `username`) VALUES ('"+b64json+"', '"+user+"')")
     db.commit()
+
