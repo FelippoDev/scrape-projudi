@@ -17,7 +17,7 @@ load_dotenv()
 def main(token, user, pwd):
     chrome_options = Options()
     chrome_options.add_argument('--no-sandbox')
-    #chrome_options.add_argument('--headless')
+    chrome_options.add_argument('--headless')
 
     driver = webdriver.Chrome(executable_path='bot\chromedriver.exe', chrome_options=chrome_options)
 
@@ -69,11 +69,38 @@ def main(token, user, pwd):
         print('going to the third path....')
 
     # Path selecting oficial de justiça
-    driver.find_element('xpath', '//*[@id="listaPerfilAtivo"]/div/ul/li[1]/div[1]/a[1]').click()
-    link = driver.find_element('xpath', '//iframe')
-    link = link.get_attribute('src')
-    driver.get(link)
-    driver.find_element('xpath', '//*[@id="tabprefix0"]/table[1]/tbody/tr[4]/td[2]/strong/a').click()
+    try:
+        perfis_ativos = driver.find_elements('xpath', '//*[@id="listaPerfilAtivo"]/div/ul/li')
+        for perfil in perfis_ativos:
+            if 'Oficial de Justiça' in perfil.text:
+                perfil.click()
+                break
+        time.sleep(2)
+        link = driver.find_element('xpath', '//iframe')
+        link = link.get_attribute('src')
+        driver.get(link)
+        driver.find_element('xpath', '//*[@id="tabprefix0"]/table[1]/tbody/tr[4]/td[2]/strong/a').click()
+    except:
+        print('on the third path')
+
+# Fourth path
+    try:
+        perfis_ativos = driver.find_elements('xpath', '//*[@id="listaPerfilAtivo"]/div/ul/li')
+        for perfil in perfis_ativos:
+            if 'Oficial de Justiça' in perfil.text:
+                perfil.click()
+                break
+        time.sleep(2)
+        driver.find_element('xpath', '/html/body/table[2]/tbody/tr/td[1]/b/a').click()
+        driver.switch_to.window(driver.window_handles[-1])
+        link = driver.find_element('xpath', '//iframe')
+        link = link.get_attribute('src')
+        driver.get(link)
+        time.sleep(1)
+        driver.find_element('xpath', '//*[@id="tabprefix0"]/table[1]/tbody/tr[4]/td[2]/strong/a').click()
+    except:
+        print('forth path')
+
 
     time.sleep(2)
 
@@ -101,12 +128,12 @@ def main(token, user, pwd):
             lista = []
             start = False
             if audiencia:
-                for it in audiencia:
-                    if it ==')':
+                for each in audiencia:
+                    if each ==')':
                         break
                     if start:
-                        lista.append(it)
-                    if it == '(':
+                        lista.append(each)
+                    if each == '(':
                         start = True
                 audiencia = ''.join(lista)
 
